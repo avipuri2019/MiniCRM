@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>CRM WebSocket Test</h1>
+    <div>
+        <input type="text" id="token" placeholder="Enter JWT token" style="width: 400px;">
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    <div id="status">Disconnected</div>
+    <div id="messages" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; margin-top: 10px; padding: 10px;"></div>
+
+    <script>
+        let ws = null;
+
+        function connect() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('Please enter JWT token');
+                return;
+            }
+
+            ws = new WebSocket(`ws://localhost:3000/ws/updates?token=${token}`);
+            
+            ws.onopen = () => {
+                document.getElementById('status').textContent = 'Connected';
+                addMessage('Connected to WebSocket');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                addMessage(`Received: ${JSON.stringify(data, null, 2)}`);
+            };
+
+            ws.onerror = (error) => {
+                addMessage(`Error: ${error}`);
+            };
+
+            ws.onclose = () => {
+                document.getElementById('status').textContent = 'Disconnected';
+                addMessage('Connection closed');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function addMessage(message) {
+            const div = document.createElement('div');
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            document.getElementById('messages').appendChild(div);
+        }
+    </script>
+</body>
+</html>
